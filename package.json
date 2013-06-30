@@ -1,0 +1,13 @@
+{ "name": "base91",
+  "version": "0.0.1",
+  "author": "Brian White <mscdex@mscdex.net>",
+  "description": "base91 implementation in javascript for node.js and browsers",
+  "main": "./lib/base91",
+  "scripts": {
+    "test": "node test/test.js"
+  },
+  "engines": { "node" : ">=0.6.0" },
+  "keywords": [ "base91", "encoding", "decoding", "encoder", "decoder" ],
+  "licenses": [ { "type": "MIT", "url": "http://github.com/mscdex/base91.js/raw/master/LICENSE" } ],
+  "repository": { "type": "git", "url": "http://github.com/mscdex/base91.js.git" }
+}
