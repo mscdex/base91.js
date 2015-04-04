@@ -7,7 +7,8 @@
         'deps/base91/base91.c',
       ],
       'include_dirs': [
-        'deps/base91'
+        'deps/base91',
+        "<!(node -e \"require('nan')\")",
       ],
       'cflags': [ '-O3' ],
     },

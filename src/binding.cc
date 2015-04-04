@@ -1,5 +1,6 @@
 #include <node.h>
 #include <node_buffer.h>
+#include <nan.h>
 
 #include <stdlib.h>
 #include <math.h>
@@ -11,16 +12,13 @@ extern "C" {
 using namespace node;
 using namespace v8;
 
-Handle<Value> B91Encode(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(B91Encode) {
+  NanScope();
   struct basE91 b91;
   Local<String> result;
 
-  if (args.Length() < 1) {
-    return ThrowException(Exception::TypeError(
-      String::New("Missing data source (string or Buffer)")
-    ));
-  }
+  if (args.Length() < 1)
+    return NanThrowTypeError("Missing data source (string or Buffer)");
 
   if (args[0]->IsString()) {
     String::Utf8Value data(args[0]);
@@ -32,10 +30,10 @@ Handle<Value> B91Encode(const Arguments& args) {
       char* ibuf = *data;
       ototal += basE91_encode(&b91, ibuf, datalen, obuf);
       ototal += basE91_encode_end(&b91, obuf + ototal);
-      result = String::New((const char*)obuf, ototal);
+      result = NanNew<String>((const char*)obuf, ototal);
       free(obuf);
     } else
-      result = String::Empty();
+      result = NanNew<String>();
   } else if (Buffer::HasInstance(args[0])) {
 #if NODE_MAJOR_VERSION == 0 && NODE_MINOR_VERSION < 10
     Local<Object> buf = args[0]->ToObject();
@@ -51,28 +49,23 @@ Handle<Value> B91Encode(const Arguments& args) {
       int ototal = 0;
       ototal += basE91_encode(&b91, data, datalen, obuf);
       ototal += basE91_encode_end(&b91, obuf + ototal);
-      result = String::New((const char*)obuf, ototal);
+      result = NanNew<String>((const char*)obuf, ototal);
       free(obuf);
     } else
-      result = String::Empty();
-  } else {
-    return ThrowException(Exception::TypeError(
-      String::New("Data source not string or Buffer")
-    ));
-  }
-  return scope.Close(result);
+      result = NanNew<String>();
+  } else
+    return NanThrowTypeError("Data source not string or Buffer");
+
+  NanReturnValue(result);
 }
 
-Handle<Value> B91Decode(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(B91Decode) {
+  NanScope();
   struct basE91 b91;
   Buffer *result = NULL;
 
-  if (args.Length() < 1) {
-    return ThrowException(Exception::TypeError(
-      String::New("Missing string data source")
-    ));
-  }
+  if (args.Length() < 1)
+    return NanThrowTypeError("Missing string data source");
 
   if (args[0]->IsString()) {
     String::Utf8Value data(args[0]);
@@ -86,25 +79,22 @@ Handle<Value> B91Decode(const Arguments& args) {
       result = Buffer::New((const char*)obuf, ototal);
       free(obuf);
     }
-  } else {
-    return ThrowException(Exception::TypeError(
-      String::New("Data source not string")
-    ));
-  }
+  } else
+    return NanThrowTypeError("Data source not string");
 
   if (result != NULL)
-    return scope.Close(result->handle_);
+    NanReturnValue(result->handle_);
   else
-    return scope.Close(Null());
+    NanReturnValue(NanNull());
 }
 
 extern "C" {
   void init(Handle<Object> target) {
-    HandleScope scope;
-    target->Set(String::NewSymbol("encode"),
-                FunctionTemplate::New(B91Encode)->GetFunction());
-    target->Set(String::NewSymbol("decode"),
-                FunctionTemplate::New(B91Decode)->GetFunction());
+    NanScope();
+    target->Set(NanNew<String>("encode"),
+                NanNew<FunctionTemplate>(B91Encode)->GetFunction());
+    target->Set(NanNew<String>("decode"),
+                NanNew<FunctionTemplate>(B91Decode)->GetFunction());
   }
 
   NODE_MODULE(base91encdec, init);

@@ -6,6 +6,9 @@
   "scripts": {
     "test": "node test/test.js"
   },
+  "dependencies": {
+    "nan": "~1.7.0"
+  },
   "engines": { "node" : ">=0.8.0" },
   "keywords": [ "base91", "encoding", "decoding", "encoder", "decoder" ],
   "licenses": [ { "type": "MIT", "url": "http://github.com/mscdex/base91.js/raw/master/LICENSE" } ],
