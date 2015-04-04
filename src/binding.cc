@@ -9,10 +9,9 @@ extern "C" {
 #include "base91.h"
 }
 
-using namespace node;
 using namespace v8;
 
-NAN_METHOD(B91Encode) {
+static NAN_METHOD(B91Encode) {
   NanScope();
   struct basE91 b91;
   Local<String> result;
@@ -34,14 +33,14 @@ NAN_METHOD(B91Encode) {
       free(obuf);
     } else
       result = NanNew<String>();
-  } else if (Buffer::HasInstance(args[0])) {
+  } else if (node::Buffer::HasInstance(args[0])) {
 #if NODE_MAJOR_VERSION == 0 && NODE_MINOR_VERSION < 10
     Local<Object> buf = args[0]->ToObject();
 #else
     Local<Value> buf = args[0];
 #endif
-    char* data = Buffer::Data(buf);
-    size_t datalen = Buffer::Length(buf);
+    char* data = node::Buffer::Data(buf);
+    size_t datalen = node::Buffer::Length(buf);
 
     if (datalen > 0) {
       char* obuf = (char*)malloc(floor(1.25 * datalen));
@@ -59,10 +58,8 @@ NAN_METHOD(B91Encode) {
   NanReturnValue(result);
 }
 
-NAN_METHOD(B91Decode) {
+static NAN_METHOD(B91Decode) {
   NanScope();
-  struct basE91 b91;
-  Buffer *result = NULL;
 
   if (args.Length() < 1)
     return NanThrowTypeError("Missing string data source");
@@ -70,22 +67,19 @@ NAN_METHOD(B91Decode) {
   if (args[0]->IsString()) {
     String::Utf8Value data(args[0]);
     size_t datalen = data.length();
+    struct basE91 b91;
     if (datalen > 0) {
       char* obuf = (char*)malloc(datalen);
       basE91_init(&b91);
       size_t ototal = 0;
       ototal += basE91_decode(&b91, *data, datalen, obuf);
       ototal += basE91_decode_end(&b91, obuf + ototal);
-      result = Buffer::New((const char*)obuf, ototal);
-      free(obuf);
-    }
-  } else
-    return NanThrowTypeError("Data source not string");
+      NanReturnValue(NanBufferUse(obuf, ototal));
+    } else
+      NanReturnValue(NanNull());
+  }
 
-  if (result != NULL)
-    NanReturnValue(result->handle_);
-  else
-    NanReturnValue(NanNull());
+  NanThrowTypeError("Data source not string");
 }
 
 extern "C" {
