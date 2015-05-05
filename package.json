@@ -7,7 +7,7 @@
     "test": "node test/test.js"
   },
   "dependencies": {
-    "nan": "~1.7.0"
+    "nan": "~1.8.0"
   },
   "engines": { "node" : ">=0.8.0" },
   "keywords": [ "base91", "encoding", "decoding", "encoder", "decoder" ],
