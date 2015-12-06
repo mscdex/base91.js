@@ -11,13 +11,13 @@ extern "C" {
 
 using namespace v8;
 
-static NAN_METHOD(B91Encode) {
-  NanScope();
+static void B91Encode(const Nan::FunctionCallbackInfo<v8::Value>& args) {
+  Nan::HandleScope scope;
   struct basE91 b91;
   Local<String> result;
 
   if (args.Length() < 1)
-    return NanThrowTypeError("Missing data source (string or Buffer)");
+    return Nan::ThrowTypeError("Missing data source (string or Buffer)");
 
   if (args[0]->IsString()) {
     String::Utf8Value data(args[0]);
@@ -29,10 +29,10 @@ static NAN_METHOD(B91Encode) {
       char* ibuf = *data;
       ototal += basE91_encode(&b91, ibuf, datalen, obuf);
       ototal += basE91_encode_end(&b91, obuf + ototal);
-      result = NanNew<String>((const char*)obuf, ototal);
+      result = Nan::New<String>((const char*)obuf, ototal).ToLocalChecked();
       free(obuf);
     } else
-      result = NanNew<String>();
+      result = Nan::EmptyString();
   } else if (node::Buffer::HasInstance(args[0])) {
 #if NODE_MAJOR_VERSION == 0 && NODE_MINOR_VERSION < 10
     Local<Object> buf = args[0]->ToObject();
@@ -48,21 +48,21 @@ static NAN_METHOD(B91Encode) {
       int ototal = 0;
       ototal += basE91_encode(&b91, data, datalen, obuf);
       ototal += basE91_encode_end(&b91, obuf + ototal);
-      result = NanNew<String>((const char*)obuf, ototal);
+      result = Nan::New<String>((const char*)obuf, ototal).ToLocalChecked();
       free(obuf);
     } else
-      result = NanNew<String>();
+      result = Nan::EmptyString();
   } else
-    return NanThrowTypeError("Data source not string or Buffer");
+    return Nan::ThrowTypeError("Data source not string or Buffer");
 
-  NanReturnValue(result);
+  args.GetReturnValue().Set(result);
 }
 
-static NAN_METHOD(B91Decode) {
-  NanScope();
+static void B91Decode(const Nan::FunctionCallbackInfo<v8::Value>& args) {
+  Nan::HandleScope scope;
 
   if (args.Length() < 1)
-    return NanThrowTypeError("Missing string data source");
+    return Nan::ThrowTypeError("Missing string data source");
 
   if (args[0]->IsString()) {
     String::Utf8Value data(args[0]);
@@ -74,21 +74,19 @@ static NAN_METHOD(B91Decode) {
       size_t ototal = 0;
       ototal += basE91_decode(&b91, *data, datalen, obuf);
       ototal += basE91_decode_end(&b91, obuf + ototal);
-      NanReturnValue(NanBufferUse(obuf, ototal));
+      args.GetReturnValue().Set(Nan::NewBuffer(obuf, ototal).ToLocalChecked());
     } else
-      NanReturnValue(NanNull());
-  }
-
-  NanThrowTypeError("Data source not string");
+      args.GetReturnValue().Set(Nan::Null());
+  } else
+    Nan::ThrowTypeError("Data source not string");
 }
 
 extern "C" {
   void init(Handle<Object> target) {
-    NanScope();
-    target->Set(NanNew<String>("encode"),
-                NanNew<FunctionTemplate>(B91Encode)->GetFunction());
-    target->Set(NanNew<String>("decode"),
-                NanNew<FunctionTemplate>(B91Decode)->GetFunction());
+    target->Set(Nan::New<String>("encode").ToLocalChecked(),
+                Nan::New<FunctionTemplate>(B91Encode)->GetFunction());
+    target->Set(Nan::New<String>("decode").ToLocalChecked(),
+                Nan::New<FunctionTemplate>(B91Decode)->GetFunction());
   }
 
   NODE_MODULE(base91encdec, init);
