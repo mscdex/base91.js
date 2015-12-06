@@ -1,5 +1,5 @@
 { "name": "base91",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "author": "Brian White <mscdex@mscdex.net>",
   "description": "base91 implementation in javascript for node.js and browsers",
   "main": "./lib/base91",
